@@ -1,4 +1,5 @@
 #include <time.h>
+#include <functional>
 #include <SFML/Graphics.hpp>
 
 int WIDTH = 32;
@@ -12,24 +13,28 @@ int HINT_GRID[8][2] = {
     {-1, 1},    {0, 1},     {1, 1}
 };
 
-
-void hints() {
+// Run a loop through the whole grid and call passed function on column-&-row indexes
+void gridLoop(std::function<void(int, int)>func) {  // void (*func)(int, int)
     for(int i = 1; i <=10; ++i) {
         for(int j = 1; j <=10; ++j) {
-            // Skip bomb cells
-            if(GRID[i][j] == 9) { continue; }
-            int counter = 0;
-
-            // Count number of bombs in surrounding cells
-            for (auto position : HINT_GRID) {
-                if(GRID[i + position[0]][j + position[1]] == 9) {
-                    ++counter;
-                }
-            }
-            // Set proper hint number in GRID
-            GRID[i][j] = counter;
+            func(i, j);
         }
     }
+}
+
+void hints(int i, int j) {
+    // Skip bomb cells
+    if(GRID[i][j] == 9) { return; }
+    int counter = 0;
+
+    // Count number of bombs in surrounding cells
+    for (auto position : HINT_GRID) {
+        if(GRID[i + position[0]][j + position[1]] == 9) {
+            ++counter;
+        }
+    }
+    // Set proper hint number in GRID
+    GRID[i][j] = counter;
 }
 
 
@@ -46,15 +51,15 @@ int main()
     texture.loadFromFile("assets/tiles.jpg");
     sf::Sprite tiles(texture);
 
-    for(int i = 1; i <=10; ++i) {
-        for(int j = 1; j <=10; ++j) {
-            SHOWN[i][j] = 10;
-            // Randomly set as bomb or empty
-            (rand() % 5 == 0) ? GRID[i][j] = 9 : GRID[i][j] = 0;
-        }
-    }
-    hints();
+    // Initialize GRID and SHOWN matrices with proper values
+    gridLoop([] (int i, int j) {
+        SHOWN[i][j] = 10;
+        // Randomly set as bomb or empty
+        (rand() % 5 == 0) ? GRID[i][j] = 9 : GRID[i][j] = 0;
+    });
+    gridLoop(&hints);
 
+    // Main loop
     while(window.isOpen()) {
         // Process events
         sf::Event e;
@@ -64,14 +69,14 @@ int main()
         }
         // Draw grid
         window.clear(sf::Color::White);
-        for(int i = 1; i <=10; ++i) {
-            for(int j = 1; j <=10; ++j) {
-                // Choose proper tile to draw and display it at position
-                tiles.setTextureRect(sf::IntRect(SHOWN[i][j] * WIDTH, 0, WIDTH, WIDTH));
-                tiles.setPosition(i * WIDTH, j * WIDTH);
-                window.draw(tiles);
-            }
-        }
+        gridLoop([&tiles, &window] (int i, int j) {
+            // Choose proper tile to draw and display it at position
+            // TODO SHOWN[i][j] = GRID[i][j];
+            tiles.setTextureRect(sf::IntRect(SHOWN[i][j] * WIDTH, 0, WIDTH, WIDTH));
+            tiles.setPosition(i * WIDTH, j * WIDTH);
+            window.draw(tiles);
+        });
+
         window.display();
     }
 
