@@ -2,7 +2,7 @@
 #include <functional>
 #include <SFML/Graphics.hpp>
 
-int WIDTH = 32;
+int SIZE = 32;
 int GRID[12][12];
 int SHOWN[12][12];
 
@@ -37,6 +37,27 @@ void hints(int i, int j) {
     GRID[i][j] = counter;
 }
 
+bool click(sf::Mouse::Button button, sf::RenderWindow* window) {
+    // Get cursor position
+    sf::Vector2i pos;
+    pos = sf::Mouse::getPosition(*window);
+
+    // Define cell that was clicked
+    int x = pos.x / SIZE;
+    int y = pos.y / SIZE;
+
+    switch (button) {
+    case sf::Mouse::Left:
+        SHOWN[x][y] = GRID[x][y];
+        break;
+    case sf::Mouse::Right:
+        SHOWN[x][y] = 11;
+    default:
+        break;
+    }
+    return SHOWN[x][y] == 9 ? true : false;
+}
+
 
 int main()
 {
@@ -60,20 +81,31 @@ int main()
     gridLoop(&hints);
 
     // Main loop
+    bool fail = false;
     while(window.isOpen()) {
+
         // Process events
         sf::Event e;
         while (window.pollEvent((e))) {
             // Handle closing
             if (e.type == sf::Event::Closed) { window.close(); }
+
+            // Handle mouse clicks
+            if(e.type == sf::Event::MouseButtonPressed) {
+                fail = click(static_cast<sf::Mouse::Button>(e.key.code), &window);
+            }
         }
         // Draw grid
         window.clear(sf::Color::White);
-        gridLoop([&tiles, &window] (int i, int j) {
+        gridLoop([&tiles, &window, &fail] (int i, int j) {
+            // If failed - show original grid
+            if (fail) {
+                SHOWN[i][j] = GRID[i][j];
+            }
+
             // Choose proper tile to draw and display it at position
-            // TODO SHOWN[i][j] = GRID[i][j];
-            tiles.setTextureRect(sf::IntRect(SHOWN[i][j] * WIDTH, 0, WIDTH, WIDTH));
-            tiles.setPosition(i * WIDTH, j * WIDTH);
+            tiles.setTextureRect(sf::IntRect(SHOWN[i][j] * SIZE, 0, SIZE, SIZE));
+            tiles.setPosition(i * SIZE, j * SIZE);
             window.draw(tiles);
         });
 
