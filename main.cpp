@@ -51,7 +51,12 @@ bool click(sf::Mouse::Button button, sf::RenderWindow* window) {
         SHOWN[x][y] = GRID[x][y];
         break;
     case sf::Mouse::Right:
-        SHOWN[x][y] = 11;
+        // Handle right click only if cell isn't opened yet
+        if (SHOWN[x][y] == 10 || SHOWN[x][y] == 11) {
+            // Toggle flag icon
+            SHOWN[x][y] = (SHOWN[x][y] == 10 ? 11 : 10);
+        }
+
     default:
         break;
     }
@@ -83,7 +88,6 @@ int main()
     // Main loop
     bool fail = false;
     while(window.isOpen()) {
-
         // Process events
         sf::Event e;
         while (window.pollEvent((e))) {
@@ -99,16 +103,13 @@ int main()
         window.clear(sf::Color::White);
         gridLoop([&tiles, &window, &fail] (int i, int j) {
             // If failed - show original grid
-            if (fail) {
-                SHOWN[i][j] = GRID[i][j];
-            }
+            if (fail) { SHOWN[i][j] = GRID[i][j]; }
 
             // Choose proper tile to draw and display it at position
             tiles.setTextureRect(sf::IntRect(SHOWN[i][j] * SIZE, 0, SIZE, SIZE));
             tiles.setPosition(i * SIZE, j * SIZE);
             window.draw(tiles);
         });
-
         window.display();
     }
 
