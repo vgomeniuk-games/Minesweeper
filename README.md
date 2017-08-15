@@ -3,12 +3,12 @@ Minesweeper game developed using SFML2 framework.
 
 ![Sample](https://github.com/vgomeniuk-games/Minesweeper/blob/master/assets/animation.gif)
 
-Development Platform/Tools:
+## Development Platform/Tools:
  - Ubuntu 14.04
  - Qt 5.7.0 (64 bit)
  - GCC 4.8.4
 
-Useful guides and FAQs:
+## Useful guides and FAQs:
 
  1. [SFML and Linux](https://www.sfml-dev.org/tutorials/2.0/start-linux.php)
 
